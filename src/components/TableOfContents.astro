@@ -1,0 +1,23 @@
+---
+import type { MarkdownHeading } from "astro";
+
+type Props = {
+  headings: MarkdownHeading[];
+  level?: number;
+  className?: string;
+};
+
+const { headings = [] } = Astro.props as Props;
+---
+
+<nav class="max-lg:hidden">
+  <ul>
+    {
+      headings.map((h) => (
+        <li class="text-xl mb-4 text-zinc-500">
+          <a href={`#${h.slug}`}>{h.text}</a>
+        </li>
+      ))
+    }
+  </ul>
+</nav>
