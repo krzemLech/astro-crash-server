@@ -1,36 +1,46 @@
 ---
-import { getCollection, type CollectionEntry } from "astro:content";
+import { getEntryBySlug } from "astro:content";
 import Layout from "../../layouts/Layout.astro";
 import Main from "../../components/Main.astro";
 import H1 from "../../components/H1.astro";
 import TableOfContents from "../../components/TableOfContents.astro";
 import Share from "../../components/Share.astro";
 import { Image } from "astro:assets";
+import PostMeta from "../../components/PostMeta.astro";
+import { getThumbnail } from "../../cloudinary";
+import CommentForm from "../../components/CommentForm.astro";
+import { XataClient } from "../../xata";
+import CommentList from "../../components/CommentList.astro";
 
-export const getStaticPaths = async () => {
-  const posts = await getCollection("posts");
-  const paths = posts.map((post) => ({
-    params: {
-      slug: post.slug,
-    },
-    props: {
-      post,
-    },
-  }));
-  return paths;
-};
+const slug = Astro.params.slug;
+const xata = new XataClient({ apiKey: import.meta.env.XATA_API_KEY });
 
-type Props = {
-  post: CollectionEntry<"posts">;
-};
+if (Astro.request.method === "POST") {
+  const user = Astro.cookies.get("userId");
+  if (!user?.value) return Astro.redirect("/login", 302);
+  const data = await Astro.request.formData();
+  const comment = data.get("comment") as string;
+  await xata.db.comments.create({
+    post: slug,
+    text: comment,
+    date: new Date(),
+    user: user.value,
+  });
+}
 
-const { post } = Astro.props;
+const post = await getEntryBySlug("posts", slug as string);
+if (!post) return Astro.redirect("/404");
+
+const comments = await xata.db.comments
+  .select(["text", "date", "id", "user.name"])
+  .filter({ post: post.slug as string })
+  .getMany();
 const { Content, headings } = await post.render();
 ---
 
 <Layout
   title={post.data.title}
-  image={post.data.image}
+  image={getThumbnail(post.data.title)}
   description={post.data.description}
 >
   <Main>
@@ -38,8 +48,9 @@ const { Content, headings } = await post.render();
       >&larr; Back to all blogs</a
     >
     <H1>{post.data.title}</H1>
+    <PostMeta {post} />
     <Image
-      src={post.data.image || ''}
+      src={post.data.image || ""}
       alt={post.data.title}
       width={1024}
       height={512}
@@ -55,4 +66,21 @@ const { Content, headings } = await post.render();
       <TableOfContents {headings} />
     </div>
   </Main>
+  <div
+    class="bg-teal-100/30 py-14 px-24 relative border-b border-teal-900 mt-44"
+  >
+    <div class="max-w-7xl mx-auto">
+      <div id="comment" class="mb-4">
+        <h2>
+          <span class="text-4xl font-bold mr-12 text-teal-900">Comments</span>
+          <span
+            class="border border-teal-900 text-teal-900 rounded-full px-4 py-2 text-xl"
+            >{comments.length}</span
+          >
+        </h2>
+      </div>
+      <CommentForm />
+      <CommentList {comments} />
+    </div>
+  </div>
 </Layout>

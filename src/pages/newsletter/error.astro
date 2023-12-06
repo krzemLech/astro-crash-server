@@ -1,0 +1,11 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import Main from "../../components/Main.astro";
+const error = Astro.url.searchParams.get("msg");
+---
+
+<Layout title="Subscription error">
+  <Main>
+    <p class="text-center p-12 text-2xl">{error || "unknown error"}</p>
+  </Main>
+</Layout>

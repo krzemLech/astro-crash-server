@@ -1,0 +1,19 @@
+{
+  "id": "mig_cln3s7bd7mdkm2nv14sg",
+  "parentID": "mig_cln3rr0kl42lh7qocob0",
+  "checksum": "1:d73782586b7a155b3c9e901db154e6884cf5d6a962037b1769e460bbb82aa03f",
+  "operations": [
+    {
+      "addColumn": {
+        "column": {
+          "name": "user",
+          "type": "link",
+          "link": {
+            "table": "users"
+          }
+        },
+        "table": "comments"
+      }
+    }
+  ]
+}

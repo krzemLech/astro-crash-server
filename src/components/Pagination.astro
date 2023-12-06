@@ -1,18 +1,22 @@
 ---
+import { POSTS_PER_PAGE } from "../config";
 type Props = {
-  prevURL?: string;
-  nextURL?: string;
+  page: number;
+  numberOfPosts: number;
   className?: string;
 };
 
-const { prevURL, nextURL, className } = Astro.props as Props;
+const { page, className, numberOfPosts } = Astro.props as Props;
+const postsPerPage = POSTS_PER_PAGE;
+const hasPrev = page > 1;
+const hasNext = numberOfPosts > page * postsPerPage;
 ---
 
 <div class={`flex ${className}`}>
   {
-    prevURL && (
+    hasPrev && (
       <a
-        href={prevURL}
+        href={`?page=${page - 1}`}
         class="bg-teal-900 text-white py-3 px-6 rounded-xl text-xl"
       >
         Back
@@ -20,9 +24,9 @@ const { prevURL, nextURL, className } = Astro.props as Props;
     )
   }
   {
-    nextURL && (
+    hasNext && (
       <a
-        href={nextURL}
+        href={`?page=${page + 1}`}
         class="bg-teal-900 text-white py-3 px-6 rounded-xl text-xl ml-auto"
       >
         Next

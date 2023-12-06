@@ -1,0 +1,6 @@
+{
+  "databaseURL": "https://krzem-s-workspace-hascij.eu-central-1.xata.sh/db/astro-blog",
+  "codegen": {
+    "output": "src/xata.ts"
+  }
+}

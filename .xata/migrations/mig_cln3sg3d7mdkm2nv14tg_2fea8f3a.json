@@ -1,0 +1,18 @@
+{
+  "id": "mig_cln3sg3d7mdkm2nv14tg",
+  "parentID": "mig_cln3s7bd7mdkm2nv14sg",
+  "checksum": "1:2fea8f3a93fbfa54b4fb1f8d088b337d5c9a5bfb733fec4caddd219942f01abb",
+  "operations": [
+    {
+      "addColumn": {
+        "column": {
+          "name": "date",
+          "type": "datetime",
+          "notNull": true,
+          "defaultValue": "now"
+        },
+        "table": "comments"
+      }
+    }
+  ]
+}

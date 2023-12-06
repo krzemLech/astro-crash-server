@@ -1,0 +1,74 @@
+---
+import Layout from "../layouts/Layout.astro";
+import Main from "../components/Main.astro";
+import H1 from "../components/H1.astro";
+import { XataClient } from "../xata";
+import bcrypt from "bcryptjs";
+
+const errors: Record<string, string> = {};
+
+if (Astro.request.method === "POST") {
+  const xata = new XataClient({ apiKey: import.meta.env.XATA_API_KEY });
+
+  const data = await Astro.request.formData();
+  const email = data.get("email") as string;
+  const password = data.get("password") as string;
+
+  const user = await xata.db.users.filter({ email }).getFirst();
+  if (!user) {
+    errors.email = "User not found";
+  } else {
+    const passwordMatch = await bcrypt.compare(password, user.password);
+    if (!passwordMatch) {
+      errors.password = "Password incorrect";
+    } else {
+      Astro.cookies.set("userId", user.id, { httpOnly: true, secure: true });
+      Astro.cookies.set("userName", user.name, {
+        httpOnly: true,
+        secure: true,
+      });
+      Astro.cookies.set("userEmail", user.email, {
+        httpOnly: true,
+        secure: true,
+      });
+
+      const redirectUrl = Astro.url.searchParams.get("redirect") || "/";
+      return Astro.redirect(redirectUrl, 302);
+    }
+  }
+}
+---
+
+<Layout title="Log in">
+  <Main>
+    <H1>Log in</H1>
+    <form method="POST" class="accent-teal-500">
+      <label for="email" class="mb-2 block text-teal-900">Email</label>
+      <input
+        type="text"
+        id="email"
+        name="email"
+        class="border-teal-900 border w-full mb-2 px-6 py-3"
+      />
+      <p class="text-red-600 mb-8">{errors.email}</p>
+      <label for="password" class="mb-2 block text-teal-900">Password</label>
+      <input
+        type="password"
+        id="password"
+        name="password"
+        class="border-teal-900 border w-full mb-2 px-6 py-3"
+      />
+      <p class="text-red-600 mb-8">{errors.password}</p>
+      <button
+        type="submit"
+        class="bg-teal-900 hover:bg-teal-600 text-white font-bold py-3 px-6 rounded-lg mb-11 w-full"
+        >Log in</button
+      >
+      <p>
+        No account yet? <a href="/signup" class="text-teal-900 underline"
+          >Go to signup</a
+        >
+      </p>
+    </form>
+  </Main>
+</Layout>

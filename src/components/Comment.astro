@@ -1,0 +1,33 @@
+---
+import type { SelectedPick } from "@xata.io/client";
+import type { CommentsRecord } from "../xata";
+type Props = {
+  comment: SelectedPick<
+    CommentsRecord,
+    ("text" | "date" | "id" | "user.name")[]
+  >;
+};
+
+const { comment } = Astro.props as Props;
+const initials = comment.user?.name
+  .split(" ")
+  .map((n) => n[0])
+  .join("");
+const formattedDate = comment.date?.toISOString().split("T")[0] || "no date";
+---
+
+<div class="flex gap-x-12 items-center">
+  <span
+    class="text-teal-900 rounded-full border border-teal-900 font-bold text-xl px-5 py-2"
+    >{initials}</span
+  >
+  <div>
+    <span class="text-zinc-700 font-bold text-xl mr-5">
+      {comment.user?.name}
+    </span>
+    <span class="text-zinc-500 text-xl">
+      {formattedDate}
+    </span>
+    <p class="text-zinc-500 text-2xl mt-2">{comment.text}</p>
+  </div>
+</div>

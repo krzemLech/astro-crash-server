@@ -3,31 +3,23 @@ import { getCollection, type CollectionEntry } from "astro:content";
 import Layout from "../../layouts/Layout.astro";
 import Main from "../../components/Main.astro";
 import H1 from "../../components/H1.astro";
-import TableOfContents from "../../components/TableOfContents.astro";
-import Share from "../../components/Share.astro";
 import CategoryList from "../../components/CategoryList.astro";
 import PostList from "../../components/PostList.astro";
+import Pagination from "../../components/Pagination.astro";
+import { POSTS_PER_PAGE } from "../../config";
 
-export const getStaticPaths = async () => {
-  const posts = await getCollection("posts");
-  const allCategories = posts.flatMap((post) => post.data.categories);
-  const categories = [...new Set(allCategories)];
-  const paths = categories.map((category) => ({
-    params: { slug: category },
-    props: {
-      category,
-      posts: posts.filter((post) => post.data.categories.includes(category)),
-    },
-  }));
-  return paths;
-};
+const page = Number(Astro.url.searchParams.get("page")) || 1;
+const postsPerPage = POSTS_PER_PAGE;
+const start = (page - 1) * postsPerPage;
+const end = start + postsPerPage;
 
-type Props = {
-  category: string;
-  posts: CollectionEntry<"posts">[];
-};
+const category = Astro.params.slug as string;
+const allPosts = await getCollection("posts");
+const postsByCategory = allPosts
+  .filter((post) => post.data.categories.includes(category))
 
-const { category, posts }: Props = Astro.props;
+const posts = postsByCategory
+  .slice(start, end);
 ---
 
 <Layout
@@ -48,8 +40,10 @@ const { category, posts }: Props = Astro.props;
       <h2 class="font-bold text-5xl text-teal-900 mr-6">Tags</h2>
       <CategoryList categories={[category]} />
     </div>
-    <!-- <Pagination nextURL="/blog/2" className="mb-12" /> -->
-    <PostList posts={posts} />
-    <!-- <Pagination nextURL="/blog/2" className="mb-36" /> -->
+    {posts.length ? (
+      <Pagination {page} numberOfPosts={postsByCategory.length} className="mb-12" />
+      <PostList {posts} /> 
+      <Pagination {page} numberOfPosts={postsByCategory.length} className="mb-12" />
+      )  : <p>No posts here!</p>}
   </Main>
 </Layout>
